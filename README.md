@@ -1,4 +1,3 @@
 Reactive-input
 ==============
-
-###Simple two-way data binding for Meteor.
+Simple two-way data binding for Meteor.
