@@ -18,7 +18,7 @@ formsRendered = -> ->
     $(@firstNode).attr key, val
 
 formsHelpers = ->
-  connecionValue: -> Template.instance().connection.get()
+  connectionValue: -> Template.instance().connection.get()
 
 formsEvents = ->
   "input *": ( ev, tpl ) ->
