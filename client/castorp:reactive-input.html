@@ -2,11 +2,11 @@
   <div class="form-wrapper"></div>
 </template>
 
-<template name="reactiveInputInput">
+<template name="reactiveInputTagInput">
   <input value="{{connectionValue}}"/>
 </template>
 
-<template name="reactiveInputSelect">
+<template name="reactiveInputTagSelect">
   <select>
     {{#each options}}
       <option {{selected value}} value="{{value}}">{{name}}</option>
@@ -14,6 +14,6 @@
   </select>
 </template>
 
-<template name="reactiveInputTextarea">
+<template name="reactiveInputTagTextarea">
   <textarea>{{connectionValue}}</textarea>
 </template>

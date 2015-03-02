@@ -1,45 +1,45 @@
 Template.reactiveInput.rendered = ->
   template = switch @data.input
-    when "textarea" then Template.reactiveInputTextarea
-    when "select" then Template.reactiveInputSelect
-    else Template.reactiveInputInput
+    when "textarea" then Template.reactiveInputTagTextarea
+    when "select" then Template.reactiveInputTagSelect
+    else Template.reactiveInputTagInput
   templateData = _.omit @data, ["input"]
 
   Blaze.renderWithData template, templateData, @firstNode
 
-formsCreated = -> ->
+commonCreated = -> ->
   @connection = @data.connection
 
-formsRendered = -> ->
+commonRendered = -> ->
   $(@firstNode).attr "type", @data.input
 
   attrs = _.omit @data, ["connection"]
   for key, val of attrs
     $(@firstNode).attr key, val
 
-formsHelpers = ->
+commonHelpers = ->
   connectionValue: -> Template.instance().connection.get()
 
-formsEvents = ->
+commonEvents = ->
   "input *": ( ev, tpl ) ->
     tpl.connection.set $(ev.currentTarget).val()
 
-Template.reactiveInputInput.created = formsCreated()
-Template.reactiveInputInput.rendered = formsRendered()
-Template.reactiveInputInput.helpers formsHelpers()
-Template.reactiveInputInput.events formsEvents()
+Template.reactiveInputTagInput.created = commonCreated()
+Template.reactiveInputTagInput.rendered = commonRendered()
+Template.reactiveInputTagInput.helpers commonHelpers()
+Template.reactiveInputTagInput.events commonEvents()
 
-Template.reactiveInputSelect.created = formsCreated()
-Template.reactiveInputSelect.rendered = formsRendered()
-Template.reactiveInputSelect.helpers _.extend formsHelpers(),
+Template.reactiveInputTagSelect.created = commonCreated()
+Template.reactiveInputTagSelect.rendered = commonRendered()
+Template.reactiveInputTagSelect.helpers _.extend commonHelpers(),
   selected: ( value ) ->
     if "#{value}" is "#{Template.instance().connection.get()}"
       "selected"
     else ""
 
-Template.reactiveInputSelect.events formsEvents()
+Template.reactiveInputTagSelect.events commonEvents()
 
-Template.reactiveInputTextarea.created = formsCreated()
-Template.reactiveInputTextarea.rendered = formsRendered()
-Template.reactiveInputTextarea.helpers formsHelpers()
-Template.reactiveInputTextarea.events formsEvents()
+Template.reactiveInputTagTextarea.created = commonCreated()
+Template.reactiveInputTagTextarea.rendered = commonRendered()
+Template.reactiveInputTagTextarea.helpers commonHelpers()
+Template.reactiveInputTagTextarea.events commonEvents()
