@@ -1,0 +1,19 @@
+<template name="reactiveInput">
+  <div class="form-wrapper"></div>
+</template>
+
+<template name="reactiveInputInput">
+  <input value="{{connecionValue}}"/>
+</template>
+
+<template name="reactiveInputSelect">
+  <select>
+    {{#each options}}
+      <option {{selected value}} value="{{value}}">{{name}}</option>
+    {{/each}}
+  </select>
+</template>
+
+<template name="reactiveInputTextarea">
+  <textarea>{{connecionValue}}</textarea>
+</template>
