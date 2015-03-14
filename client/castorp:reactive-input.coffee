@@ -1,4 +1,4 @@
-# TODO: prefixes for helpers' names
+# TODO: controinng attr: input -> type
 if Meteor.isClient
 
   @ReactiveInput = @ReactiveInput or {}
@@ -9,21 +9,32 @@ if Meteor.isClient
     # generate helpers for reactive inputs
     # do not forget about helpers' names collisions
     generatedHelpers = {}
-    tpl.reactiveInputs = {}
+    tpl.reactiveInputs ?= {}
+
     for field in Object.keys obj
-      tpl.reactiveInputsFor = field
       tpl.reactiveInputs[field] = new ReactiveVar obj[field]
+
       (( field ) ->
         generatedHelpers["#{field}Connection"] = -> Template.instance().reactiveInputs[field]
         generatedHelpers[field] = -> Template.instance().reactiveInputs[field].get()
       )( field )
-    Template[tplName].helpers generatedHelpers
+
+    for key, helper of generatedHelpers
+      continue if Template[tplName].generatedHelpers?[key]
+
+      obj = {}
+      obj[key] = helper
+      Template[tplName].helpers obj
+
+    Template[tplName].generatedHelpers ?= {}
+    _.extend Template[tplName].generatedHelpers, generatedHelpers
 
     for field in Object.keys (Tracker.nonreactive => reactiveModel.get())
-      ((field) -> tpl.autorun ->
+      tpl.autorun (( field ) -> ->
         model = Tracker.nonreactive => reactiveModel.get()
         model[field] = tpl.reactiveInputs[field].get()
-        reactiveModel.set model)(field)
+        reactiveModel.set model
+      )( field )
 
 Template.reactiveInput.rendered = ->
   template = switch @data.input
@@ -32,9 +43,17 @@ Template.reactiveInput.rendered = ->
     else Template.reactiveInputTagInput
   templateData = _.omit @data, ["input"]
 
+  value = @data.connection.get()
+  editMode = not value or
+    value.trim?() is "" or
+    @data.editableStartState or
+    not @data.isEditable
+  templateData.editMode = new ReactiveVar editMode
+
   Blaze.renderWithData template, templateData, @firstNode
 
 commonCreated = -> ->
+  @editMode = @data.editMode
   @connection = @data.connection
 
 commonRendered = -> ->
@@ -45,12 +64,24 @@ commonRendered = -> ->
     $(@firstNode).attr key, val
 
 commonHelpers = ->
+  isEditMode: -> Template.instance().editMode.get()
   connectionValue: ->
     Template.instance().connection.get()
 
 commonEvents = ->
   "input *, autocompleteselect *": ( ev, tpl ) -> _.defer =>
     tpl.connection.set $(ev.currentTarget).val()
+
+  "click span, mouseover span": ( ev, tpl ) ->
+    Template.instance().editMode.set true
+    _.defer -> tpl.$("input, select").focus()
+
+  "blur *, keyup *, autocompleteclose *": ( ev, tpl ) ->
+    return unless ev.keyCode is 13 or not ev.keyCode
+    return if $(ev.currentTarget).val().trim() is ""
+
+    if Template.instance().data.isEditable
+      Template.instance().editMode.set false
 
 templateNames = [
   "reactiveInputTagInput",

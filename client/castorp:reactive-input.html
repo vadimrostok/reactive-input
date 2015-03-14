@@ -1,19 +1,30 @@
 <template name="reactiveInput">
-  <div class="form-wrapper"></div>
+  <span class="form-wrapper"></span>
 </template>
 
 <template name="reactiveInputTagInput">
-  <input value="{{connectionValue}}"/>
+  <input style="{{#if isEditMode}}{{else}}display:none;{{/if}}" value="{{connectionValue}}"/>
+  <span style="{{#if isEditMode}}display:none;{{/if}}">
+    {{connectionValue}}
+  </span>
 </template>
 
 <template name="reactiveInputTagSelect">
-  <select>
+  <select style="{{#if isEditMode}}{{else}}display:none;{{/if}}">
     {{#each options}}
       <option {{selected value}} value="{{value}}">{{name}}</option>
     {{/each}}
   </select>
+  <span style="{{#if isEditMode}}display:none;{{/if}}">
+    {{connectionValue}}
+  </span>
 </template>
 
 <template name="reactiveInputTagTextarea">
-  <textarea>{{connectionValue}}</textarea>
+  <textarea style="{{#if isEditMode}}{{else}}display:none;{{/if}}">
+    {{connectionValue}}
+  </textarea>
+  <span style="{{#if isEditMode}}display:none;{{/if}}">
+    {{connectionValue}}
+  </span>
 </template>
