@@ -9,8 +9,9 @@ if Meteor.isClient
     # generate helpers for reactive inputs
     # do not forget about helpers' names collisions
     generatedHelpers = {}
-    tpl.reactiveInputs ?= {}
+    tpl.reactiveInputs = {}
     for field in Object.keys obj
+      tpl.reactiveInputsFor = field
       tpl.reactiveInputs[field] = new ReactiveVar obj[field]
       (( field ) ->
         generatedHelpers["#{field}Connection"] = -> Template.instance().reactiveInputs[field]
@@ -18,13 +19,11 @@ if Meteor.isClient
       )( field )
     Template[tplName].helpers generatedHelpers
 
-    # sync inputs (DOM) with model (ReactiveVar)
-    tpl.autorun ->
-      model = Tracker.nonreactive => reactiveModel.get()
-      obj = {}
-      for field in Object.keys model
-        obj[field] = tpl.reactiveInputs[field].get()
-      reactiveModel.set _.extend model, obj
+    for field in Object.keys (Tracker.nonreactive => reactiveModel.get())
+      ((field) -> tpl.autorun ->
+        model = Tracker.nonreactive => reactiveModel.get()
+        model[field] = tpl.reactiveInputs[field].get()
+        reactiveModel.set model)(field)
 
 Template.reactiveInput.rendered = ->
   template = switch @data.input
@@ -50,7 +49,7 @@ commonHelpers = ->
     Template.instance().connection.get()
 
 commonEvents = ->
-  "input *": ( ev, tpl ) ->
+  "input *, autocompleteselect *": ( ev, tpl ) -> _.defer =>
     tpl.connection.set $(ev.currentTarget).val()
 
 templateNames = [
@@ -66,6 +65,9 @@ for key in templateNames
   Template[key].events commonEvents()
 
 Template.reactiveInputTagSelect.helpers
+  options: ->
+    options = Template.instance().data.options
+    options?.get?() or options
   selected: ( value ) ->
     if "#{value}" is "#{Template.instance().connection.get()}"
       "selected"

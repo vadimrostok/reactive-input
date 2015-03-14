@@ -1,6 +1,6 @@
 Package.describe({
   name: 'castorp:reactive-input',
-  version: '0.0.1',
+  version: '0.0.1_2',
   summary: 'Simple two-way data binding for Meteor.',
   git: 'https://github.com/vadimrostok/reactive-input',
   documentation: 'README.md'
