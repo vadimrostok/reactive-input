@@ -76,7 +76,7 @@ commonEvents = ->
     Template.instance().editMode.set true
     _.defer -> tpl.$("input, select").focus()
 
-  "blur *, keyup *, autocompleteclose *": ( ev, tpl ) ->
+  "blur *, keyup *": ( ev, tpl ) ->
     return unless ev.keyCode is 13 or not ev.keyCode
     return if $(ev.currentTarget).val().trim() is ""
 
