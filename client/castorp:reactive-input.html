@@ -1,5 +1,5 @@
 <template name="reactiveInput">
-  <span class="form-wrapper"></span>
+  <span class="reactive-input"></span>
 </template>
 
 <template name="reactiveInputTagInput">
@@ -21,9 +21,7 @@
 </template>
 
 <template name="reactiveInputTagTextarea">
-  <textarea style="{{#if isEditMode}}{{else}}display:none;{{/if}}">
-    {{connectionValue}}
-  </textarea>
+  <textarea style="{{#if isEditMode}}{{else}}display:none;{{/if}}">{{connectionValue}}</textarea>
   <span style="{{#if isEditMode}}display:none;{{/if}}">
     {{connectionValue}}
   </span>

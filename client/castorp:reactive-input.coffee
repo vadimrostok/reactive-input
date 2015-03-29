@@ -1,64 +1,56 @@
-# TODO: controinng attr: input -> type
-if Meteor.isClient
+#TODO: move "editable" feature to separate package!
 
-  @ReactiveInput = @ReactiveInput or {}
-  @ReactiveInput.generateHelpers = ( tpl, reactiveModel ) ->
-    obj = Tracker.nonreactive => reactiveModel.get()
-    tplName = tpl.view.name.split(".")[1]
-
-    # generate helpers for reactive inputs
-    # do not forget about helpers' names collisions
-    generatedHelpers = {}
-    tpl.reactiveInputs ?= {}
-
-    for field in Object.keys obj
-      tpl.reactiveInputs[field] = new ReactiveVar obj[field]
-
-      (( field ) ->
-        generatedHelpers["#{field}Connection"] = -> Template.instance().reactiveInputs[field]
-        generatedHelpers[field] = -> Template.instance().reactiveInputs[field].get()
-      )( field )
-
-    for key, helper of generatedHelpers
-      continue if Template[tplName].generatedHelpers?[key]
-
-      obj = {}
-      obj[key] = helper
-      Template[tplName].helpers obj
-
-    Template[tplName].generatedHelpers ?= {}
-    _.extend Template[tplName].generatedHelpers, generatedHelpers
-
-    for field in Object.keys (Tracker.nonreactive => reactiveModel.get())
-      tpl.autorun (( field ) -> ->
-        model = Tracker.nonreactive => reactiveModel.get()
-        model[field] = tpl.reactiveInputs[field].get()
-        reactiveModel.set model
-      )( field )
+# There are two options how to connect reactiveInput with your model:
+# 1: pass a connection parameter, which is a reactiveVar
+# 2: pass a reactiveModel parameter and a fieldName parameter
+#
+# There are few "controlling" params:
+# 1: type - which would be a input type
+# 2: connection - reactveVar
+# 3: reactiveModel + fieldName - instead of connection
 
 Template.reactiveInput.rendered = ->
-  template = switch @data.input
+  # which input template to use?
+  template = switch @data.type
     when "textarea" then Template.reactiveInputTagTextarea
     when "select" then Template.reactiveInputTagSelect
     else Template.reactiveInputTagInput
-  templateData = _.omit @data, ["input"]
+
+  # Model+fieldName were passed, create connection.
+  if @data.reactiveModel and @data.fieldName
+    modelData = Tracker.nonreactive => @data.reactiveModel.get()
+    @data.connection = new ReactiveVar modelData[@data.fieldName]
 
   value = @data.connection.get()
+
+  # Checkbox type needs special treatment.
+  if @data.type is "checkbox" and value
+    @data.checked = true
+
+  # Edit mode (aka editable) as a secret extra feature, only those of you who
+  # read this gonna know about it :) I'll remove it soon.
   editMode = not value or
     value.trim?() is "" or
     @data.editableStartState or
     not @data.isEditable
-  templateData.editMode = new ReactiveVar editMode
+  @data.editMode = new ReactiveVar editMode
 
-  Blaze.renderWithData template, templateData, @firstNode
+  Blaze.renderWithData template, @data, @firstNode
 
 commonCreated = -> ->
   @editMode = @data.editMode
   @connection = @data.connection
 
-commonRendered = -> ->
-  $(@firstNode).attr "type", @data.input
+  # Update reactiveModel (passed as a parameter) on connecion change
+  # because in this case (reactiveModel passed) `connection` is a hidden state
+  # so users don't have access to it.
+  if @data.reactiveModel and @data.fieldName
+    @autorun =>
+      modelData = Tracker.nonreactive => @data.reactiveModel.get()
+      modelData[@data.fieldName] = @connection.get()
+      @data.reactiveModel.set modelData
 
+commonRendered = -> ->
   attrs = _.omit @data, ["connection"]
   for key, val of attrs
     $(@firstNode).attr key, val
@@ -69,19 +61,28 @@ commonHelpers = ->
     Template.instance().connection.get()
 
 commonEvents = ->
-  "input *, autocompleteselect *": ( ev, tpl ) -> _.defer =>
-    tpl.connection.set $(ev.currentTarget).val()
+  "input *, change input[type='checkbox'], autocompleteselect *": ( ev, tpl ) -> _.defer =>
+    node = $ ev.currentTarget
+    val = if tpl.data.type is "checkbox" then node.is(":checked") else node.val()
+    node.attr "size", val.length or 2
+    tpl.connection.set val
 
-  "click span, mouseover span": ( ev, tpl ) ->
+  "click span": ( ev, tpl ) ->
     Template.instance().editMode.set true
-    _.defer -> tpl.$("input, select").focus()
+    _.defer ->
+      node = tpl.$ "input, select"
+      val = node.val()
+      node.attr "size", val.length or 2
+      node.focus()
 
   "blur *, keyup *": ( ev, tpl ) ->
     return unless ev.keyCode is 13 or not ev.keyCode
-    return if $(ev.currentTarget).val().trim() is ""
+    return if $(ev.currentTarget).val?()?.trim?() is ""
 
     if Template.instance().data.isEditable
-      Template.instance().editMode.set false
+      tpl = Template.instance()
+      setTimeout -> tpl.editMode.set false
+      , 100
 
 templateNames = [
   "reactiveInputTagInput",
