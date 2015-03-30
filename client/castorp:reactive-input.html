@@ -1,10 +1,10 @@
 <template name="reactiveInput">
-  <span class="form-wrapper"></span>
+  <span class="form-wrapper reactive-input"></span>
 </template>
 
 <template name="reactiveInputTagInput">
   <input style="{{#if isEditMode}}{{else}}display:none;{{/if}}" value="{{connectionValue}}"/>
-  <span style="{{#if isEditMode}}display:none;{{/if}}">
+  <span ri-type="value" style="{{#if isEditMode}}display:none;{{/if}}">
     {{connectionValue}}
   </span>
 </template>
@@ -15,16 +15,14 @@
       <option {{selected value}} value="{{value}}">{{name}}</option>
     {{/each}}
   </select>
-  <span style="{{#if isEditMode}}display:none;{{/if}}">
+  <span ri-type="value" style="{{#if isEditMode}}display:none;{{/if}}">
     {{connectionValue}}
   </span>
 </template>
 
 <template name="reactiveInputTagTextarea">
-  <textarea style="{{#if isEditMode}}{{else}}display:none;{{/if}}">
-    {{connectionValue}}
-  </textarea>
-  <span style="{{#if isEditMode}}display:none;{{/if}}">
+  <textarea style="{{#if isEditMode}}{{else}}display:none;{{/if}}">{{connectionValue}}</textarea>
+  <span ri-type="value" style="{{#if isEditMode}}display:none;{{/if}}">
     {{connectionValue}}
   </span>
 </template>
