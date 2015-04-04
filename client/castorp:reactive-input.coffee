@@ -64,7 +64,7 @@ commonEvents = ->
   "input *, change input[type='checkbox'], autocompleteselect *": ( ev, tpl ) -> _.defer =>
     node = $ ev.currentTarget
     val = if tpl.data.type is "checkbox" then node.is(":checked") else node.val()
-    node.attr "size", val.length or 2
+    if tpl.data.type isnt "select" then node.attr "size", val.length or 2
     tpl.connection.set val
 
   "click span": ( ev, tpl ) ->
