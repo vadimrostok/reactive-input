@@ -19,12 +19,16 @@ Template.reactiveInput.rendered = ->
   # Model+fieldName were passed, create connection.
   if @data.reactiveModel and @data.fieldName
     modelData = Tracker.nonreactive => @data.reactiveModel.get()
-    @data.connection = new ReactiveVar modelData[@data.fieldName]
+    [obj, lastKey] = getIn modelData, @data.fieldName
+    @data.connection = new ReactiveVar obj[lastKey]
 
   value = @data.connection.get()
 
   # Checkbox type needs special treatment.
   if @data.type is "checkbox" and value
+    @data.checked = true
+
+  if @data.type is "radio" and value is @data.value
     @data.checked = true
 
   # Edit mode (aka editable) as a secret extra feature, only those of you who
@@ -37,6 +41,15 @@ Template.reactiveInput.rendered = ->
 
   Blaze.renderWithData template, @data, @firstNode
 
+getIn = ( model, path ) ->
+  path = path.split "."
+  lastKey = _.last path
+  path.splice -1
+  obj = path.reduce ( obj, fieldName ) =>
+    obj[fieldName]
+  , model
+  [obj, lastKey]
+
 commonCreated = -> ->
   @editMode = @data.editMode
   @connection = @data.connection
@@ -47,8 +60,18 @@ commonCreated = -> ->
   if @data.reactiveModel and @data.fieldName
     @autorun =>
       modelData = Tracker.nonreactive => @data.reactiveModel.get()
-      modelData[@data.fieldName] = @connection.get()
+      [obj, lastKey] = getIn modelData, @data.fieldName
+      return if obj[lastKey] is @connection.get()
+
+      obj[lastKey] = @connection.get()
+
       @data.reactiveModel.set modelData
+
+    unless @data.type is "radio"
+      @autorun =>
+        modelData = @data.reactiveModel.get()
+        [obj, lastKey] = getIn modelData, @data.fieldName
+        @connection.set obj[lastKey]
 
 commonRendered = -> ->
   attrs = _.omit @data, ["connection"]
@@ -61,10 +84,11 @@ commonHelpers = ->
     Template.instance().connection.get()
 
 commonEvents = ->
-  "input *, change input[type='checkbox'], autocompleteselect *": ( ev, tpl ) -> _.defer =>
+  "input *, change input[type='radio'], change input[type='checkbox'], autocompleteselect *": ( ev, tpl ) -> _.defer =>
     node = $ ev.currentTarget
     val = if tpl.data.type is "checkbox" then node.is(":checked") else node.val()
     if tpl.data.type isnt "select" then node.attr "size", val.length or 2
+    tpl.connection.set undefined
     tpl.connection.set val
 
   "click span": ( ev, tpl ) ->
