@@ -33,10 +33,10 @@ Template.reactiveInput.rendered = ->
 
   # Edit mode (aka editable) as a secret extra feature, only those of you who
   # read this gonna know about it :) I'll remove it soon.
-  editMode = not value or
-    value.trim?() is "" or
+  editMode = ((not value or value.trim?() is "") and (not @data.placeholder or @data.placeholder.trim?() is "")) or
     @data.editableStartState or
     not @data.isEditable
+
   @data.editMode = new ReactiveVar editMode
 
   Blaze.renderWithData template, @data, @firstNode
@@ -81,13 +81,21 @@ commonRendered = -> ->
 commonHelpers = ->
   isEditMode: -> Template.instance().editMode.get()
   connectionValue: ->
-    Template.instance().connection.get()
+    val = Template.instance().connection.get()
+    if Template.instance().data.placeholder is val
+      val = ""
+    val
+  connectionPlaceholder: ->
+    val = Template.instance().connection.get()
+    if val is ""
+      val = Template.instance().data.placeholder
+    val
 
 commonEvents = ->
   "input *, change input[type='radio'], change input[type='checkbox'], autocompleteselect *": ( ev, tpl ) -> _.defer =>
     node = $ ev.currentTarget
     val = if tpl.data.type is "checkbox" then node.is(":checked") else node.val()
-    if tpl.data.type isnt "select" then node.attr "size", val.length or 2
+    if tpl.data.type isnt "select" then node.attr "size", val.length or tpl.data.placeholder?.length or 2
     tpl.connection.set undefined
     tpl.connection.set val
 
@@ -96,13 +104,12 @@ commonEvents = ->
     _.defer ->
       node = tpl.$ "input, select"
       val = node.val()
-      node.attr "size", val.length or 2
+      node.attr "size", val.length or tpl.data.placeholder?.length or 2
       node.focus()
 
   "blur *, keyup *": ( ev, tpl ) ->
     return unless ev.keyCode is 13 or not ev.keyCode
-    return if $(ev.currentTarget).val?()?.trim?() is ""
-
+    return if $(ev.currentTarget).val?()?.trim?() is "" and (typeof $(ev.currentTarget).attr('placeholder') is "undefined" or $(ev.currentTarget).attr('placeholder').trim() is "")
     if Template.instance().data.isEditable
       tpl = Template.instance()
       setTimeout -> tpl.editMode.set false

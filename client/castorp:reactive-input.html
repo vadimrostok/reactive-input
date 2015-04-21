@@ -3,9 +3,9 @@
 </template>
 
 <template name="reactiveInputTagInput">
-  <input style="{{#if isEditMode}}{{else}}display:none;{{/if}}" value="{{connectionValue}}"/>
+  <input style="{{#if isEditMode}}{{else}}display:none;{{/if}}" value="{{connectionValue}}" placeholder="{{placeholderVal}}" />
   <span ri-type="value" style="{{#if isEditMode}}display:none;{{/if}}">
-    {{connectionValue}}
+    {{connectionPlaceholder}}
   </span>
 </template>
 
