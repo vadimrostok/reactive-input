@@ -1,4 +1,5 @@
-#TODO: move "editable" feature to separate package!
+# TODO: move "editable" feature to separate package!
+# TODO: doc typecaster and other meta params
 
 # There are two options how to connect reactiveInput with your model:
 # 1: pass a connection parameter, which is a reactiveVar
@@ -97,7 +98,10 @@ commonEvents = ->
     val = if tpl.data.type is "checkbox" then node.is(":checked") else node.val()
     if tpl.data.type isnt "select" then node.attr "size", val.length or tpl.data.placeholder?.length or 2
     tpl.connection.set undefined
-    tpl.connection.set val
+    tpl.connection.set if tpl.data.typecaster
+      tpl.data.typecaster val
+    else
+      if tpl.data.type is "number" then parseFloat val else val
 
   "click span": ( ev, tpl ) ->
     Template.instance().editMode.set true
