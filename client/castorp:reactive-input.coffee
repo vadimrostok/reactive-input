@@ -82,10 +82,7 @@ commonRendered = -> ->
 commonHelpers = ->
   isEditMode: -> Template.instance().editMode.get()
   connectionValue: ->
-    val = Template.instance().connection.get()
-    if Template.instance().data.placeholder is val
-      val = ""
-    val
+    Template.instance().connection.get()
   connectionPlaceholder: ->
     val = Template.instance().connection.get()
     if val is ""
