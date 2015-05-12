@@ -94,11 +94,17 @@ commonEvents = ->
     node = $ ev.currentTarget
     val = if tpl.data.type is "checkbox" then node.is(":checked") else node.val()
     if tpl.data.type isnt "select" then node.attr "size", val.length or tpl.data.placeholder?.length or 2
-    tpl.connection.set undefined
-    tpl.connection.set if tpl.data.typecaster
+    #tpl.connection.set undefined - it's a bad idea to set a reactiveVar twice
+    curVal = if tpl.data.typecaster
       tpl.data.typecaster val
     else
-      if tpl.data.type is "number" then parseFloat val else val
+      if val and tpl.data.type is "number" 
+        tmpVal = parseFloat val 
+        if isNaN tmpVal then tmpVal = undefined
+        tmpVal
+      else 
+        val
+    tpl.connection.set curVal
 
   "click span": ( ev, tpl ) ->
     Template.instance().editMode.set true
