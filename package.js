@@ -15,7 +15,7 @@ Package.onUse(function(api) {
   ], 'client');
   api.versionsFrom('1.0.3.2');
   api.addFiles([
-    'client/castorp:reactive-input.html',
-    'client/castorp:reactive-input.coffee'
+    'client/castorp-reactive-input.html',
+    'client/castorp-reactive-input.coffee'
   ]);
 });
